@@ -11,14 +11,10 @@ let arr_1 = new Array(256);
 let arr_2 = new Array(256);
 
 // @jsbm { concat }
-{
-    arr_1.concat(arr_2);
-}
+arr_1.concat(arr_2);
 
 // @jsbm { spread }
-{
-    [...arr_1, ...arr_2];
-}
+[...arr_1, ...arr_2];
 ```
 
 usage
