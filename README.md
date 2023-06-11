@@ -26,7 +26,6 @@ usage
 
 ```
 $ jsbm main.js
-
 for key | 6μs (std. 0μs o. 8%)
 object values | 4μs (std. 1μs o. 5%)
 ```
