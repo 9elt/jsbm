@@ -3,15 +3,15 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
-    /// Number of times snippets are measured on
+    /// Measure snippets over x iterations
     #[arg(short, long, default_value_t = 100)]
     pub iterations: u32,
 
-    /// Number of times measurement is repeated
+    /// Repeat x measurements
     #[arg(short, long, default_value_t = 1000)]
     pub samples: u32,
 
-    /// Keep the generated benchmark file
+    /// Keep generated files
     #[arg(long)]
     pub keep: bool,
 

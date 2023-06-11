@@ -42,7 +42,7 @@ options:
 
 `-s, --samples` Repeat *x* measurements *(defaults to 1000)*
 
-`--keep` Keep the benchmark file
+`--keep` Keep generated files
 
 ## installation
 
