@@ -4,7 +4,7 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Measure snippets over x iterations
-    #[arg(short, long, default_value_t = 100)]
+    #[arg(short, long, default_value_t = 1)]
     pub iterations: u32,
 
     /// Repeat x measurements
@@ -16,5 +16,5 @@ pub struct Args {
     pub keep: bool,
 
     /// Path to file
-    pub file_paths: Vec<String>,
+    pub paths: Vec<String>,
 }

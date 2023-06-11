@@ -11,13 +11,11 @@ use util::wrapper::{wrap, UTILS};
 
 fn main() {
     let args = Args::parse();
-    println!("");
     future::block_on(async {
-        for path in args.file_paths.iter() {
+        for path in args.paths.iter() {
             benchmark(path, &args).await;
         }
     });
-    println!("");
 }
 
 async fn benchmark(path: &String, args: &Args) {

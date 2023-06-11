@@ -38,7 +38,7 @@ jsbm [options] [paths]...
 
 options:
 
-`-i, --iterations` Measure snippets over *x* iterations *(defaults to 100)*
+`-i, --iterations` Measure snippets over *x* iterations *(defaults to 1)*
 
 `-s, --samples` Repeat *x* measurements *(defaults to 1000)*
 
