@@ -1,0 +1,13 @@
+[package]
+name = "jsbm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-process = "1.7.0"
+futures-lite = "1.13.0"
+clap = { version = "4.1.13", features=["derive"] }
+pest = "2.6.0"
+pest_derive = "2.6.0"

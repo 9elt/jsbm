@@ -1,0 +1,10 @@
+MAIN_KEY = _{ ^"@jsbm" }
+
+WS = _{ (WHITE_SPACE | "//" | "/*" | "*/")* }
+
+Declaration = { Name ~ WS }
+Name = { WS ~ MAIN_KEY ~ WS ~ Value? }
+Value = { "{" ~ (!("}") ~ ANY)* ~ "}" }
+Content = { (!(WS ~ MAIN_KEY) ~ ANY)* }
+
+Parse = { (Content ~ Declaration ~ Content)* }
