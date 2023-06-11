@@ -42,3 +42,12 @@ options:
 `-s, --samples` Number of times measurement is repeated *(defaults to 1000)*
 
 `--keep` Keep the generated benchmark file
+
+## installation
+
+```
+cargo install --git https://github.com/9elt/jsbm
+```
+
+see: 
+[**installing binaries with cargo install**](https://doc.rust-lang.org/book/ch14-04-installing-binaries.html), [**install rust and cargo**](https://doc.rust-lang.org/cargo/getting-started/installation.html)
