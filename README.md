@@ -25,9 +25,9 @@ let values = Object.values(obj)
 usage
 
 ```
-$ jsbm main.js
-for key | 6μs (std. 0μs o. 8%)
-object values | 4μs (std. 1μs o. 5%)
+$ jsbm -i 1000 test.js
+for key | 28μs (std. 0μs o. 24%)
+object values | 19μs (std. 9μs o. 2%)
 ```
 
 ## CLI usage
