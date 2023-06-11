@@ -7,27 +7,26 @@ A CLI tool to benchmark javascript files
 *main.js*
 
 ```javascript
-let obj = {
-    foo: "bar"
+let arr_1 = new Array(256);
+let arr_2 = new Array(256);
+
+// @jsbm { concat }
+{
+    arr_1.concat(arr_2);
 }
 
-// @jsbm { for key }
-let values = []
-
-for (const key in obj) {
-    values.push(obj[key])
+// @jsbm { spread }
+{
+    [...arr_1, ...arr_2];
 }
-
-// @jsbm { object values }
-let values = Object.values(obj)
 ```
 
 usage
 
 ```
-$ jsbm -i 1000 test.js
-for key | 28μs (std. 0μs o. 24%)
-object values | 19μs (std. 9μs o. 2%)
+$ jsbm -i 1000 main.js
+concat | 485μs (std. 6μs o. 39%)
+spread | 1.42ms (std. 12μs o. 10%)
 ```
 
 ## CLI usage
