@@ -30,13 +30,7 @@ iterations: {iterations}
 */")
 }
 
-pub const UTILS: &str = "/*
-auto generated using jsbm CLI
-https://github.com/9elt/jsbm
-
-samples: 1000
-iterations: 1
-*/
+pub const UTILS: &str = "
 const _jsbm_snd = (samples) => {
 samples.sort((a, b) => a - b);
 let fq = samples.length / 4;
