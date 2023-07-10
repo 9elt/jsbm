@@ -20,7 +20,24 @@ _jsbm_log('{name}', error);
 }};")
 }
 
-pub const UTILS: &str = "const _jsbm_snd = (samples) => {
+pub fn heading(iterations: u32, samples: u32) -> String {
+    format!("/*
+auto generated using jsbm CLI
+https://github.com/9elt/jsbm
+
+samples: {samples}
+iterations: {iterations}
+*/")
+}
+
+pub const UTILS: &str = "/*
+auto generated using jsbm CLI
+https://github.com/9elt/jsbm
+
+samples: 1000
+iterations: 1
+*/
+const _jsbm_snd = (samples) => {
 samples.sort((a, b) => a - b);
 let fq = samples.length / 4;
 let t = Math.ceil(fq * 3);

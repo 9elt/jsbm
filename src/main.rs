@@ -7,7 +7,7 @@ use futures_lite::{future, io::BufReader, prelude::*};
 use parser::Item;
 use std::fs;
 use util::args::Args;
-use util::wrapper::{wrap, UTILS};
+use util::wrapper::{heading, wrap, UTILS};
 
 fn main() {
     let args = Args::parse();
@@ -24,7 +24,11 @@ async fn benchmark(path: &String, args: &Args) {
         Err(_) => return error("failed reading", path),
     };
 
-    let mut b = UTILS.to_string();
+    let mut b = format!(
+        "{}{}",
+        heading(args.iterations, args.samples),
+        UTILS.to_string()
+    );
 
     for item in parser::parse(&file).unwrap() {
         match item {
