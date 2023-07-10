@@ -23,7 +23,7 @@ _jsbm_log('{name}', error);
 
 pub fn heading(iterations: u32, samples: u32) -> String {
     format!("/*
-auto generated using jsbm CLI
+auto-generated using jsbm CLI
 https://github.com/9elt/jsbm
 
 samples: {samples}
