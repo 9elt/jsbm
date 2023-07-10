@@ -8,8 +8,9 @@ pub fn wrap(snippet: Snippet, samples: u32, iterations: u32) -> String {
 try {{
 const _results = Array({samples});
 for (let _sample = 0; _sample < {samples}; _sample++) {{
+let _iteration = {iterations};
 const _start = performance.now();
-for (let _iteration = 0; _iteration < {iterations}; _iteration++) {{
+while (_iteration--) {{
 {code}
 }};
 _results[_sample] = performance.now() - _start;
