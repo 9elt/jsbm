@@ -46,7 +46,7 @@ function prealloc(renamedArray) {
 
 ```
 $ jsbm example.js
->test.js bun@1.1.42 iter:1000 samples:1000
+>example.js bun@1.1.42 iter:1000 samples:1000
 map | 3.67ms ±426μs :0%
 push | 7.90ms ±264μs :14%
 prealloc | 3.03ms ±467μs :1%
