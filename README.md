@@ -52,6 +52,12 @@ push | 7.90ms ±264μs :14%
 prealloc | 3.03ms ±467μs :1%
 ```
 
+### Installation
+
+```
+npm install -g @9elt/jsbm
+```
+
 ## CLI Usage
 
 ```
