@@ -61,7 +61,7 @@ npm install -g @9elt/jsbm
 ## CLI Usage
 
 ```
-jsbm [runtimes] [file] [options]
+jsbm [runtimes] [files] [options]
 runtimes:
     bun, deno, node, ts-node
 options:

@@ -4,9 +4,9 @@ import { spawn } from "child_process";
 import fs from "fs";
 import ts from "typescript";
 
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 
-const HELP = `jsbm [runtimes] [file] [options]
+const HELP = `jsbm [runtimes] [files] [options]
 runtimes:
     bun, deno, node, ts-node
 options:
