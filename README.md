@@ -6,6 +6,8 @@ Benchmark JavaScript with JSDoc comments.
 
 Insert a JSDoc comment with a `@jsbm` tag above a function or block.
 
+<sub>*example.js*</sub>
+
 ```js
 const original = new Array(2056).fill(0);
 
@@ -43,7 +45,7 @@ function prealloc(renamedArray) {
 ```
 
 ```
-$ jsbm test.js
+$ jsbm example.js
 >test.js bun@1.1.42 iter:1000 samples:1000
 map | 3.67ms ±426μs :0%
 push | 7.90ms ±264μs :14%
@@ -53,7 +55,7 @@ prealloc | 3.03ms ±467μs :1%
 ## CLI Usage
 
 ```
-Usage: jsbm [runtimes] [file] [options]
+jsbm [runtimes] [file] [options]
 runtimes:
     bun, deno, node, ts-node
 options:
