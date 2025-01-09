@@ -1,0 +1,29 @@
+{
+    "name": "@9elt/jsbm",
+    "version": "0.1.0",
+    "description": "Benchmark JavaScript with JSDoc comments",
+    "scripts": {
+        "build": "tsc"
+    },
+    "bin": {
+        "jsbm": "./index.js"
+    },
+    "author": "Lorenzo Cicuttin",
+    "license": "MIT",
+    "keywords": [
+        "node",
+        "bun",
+        "deno",
+        "benchmark",
+        "jsdoc"
+    ],
+    "readme": "./README.md",
+    "homepage": "https://github.com/9elt/jsbm#readme",
+    "repository": "github:9elt/jsbm",
+    "devDependencies": {
+        "@types/node": "^22.10.5"
+    },
+    "dependencies": {
+        "typescript": "^5.7.2"
+    }
+}

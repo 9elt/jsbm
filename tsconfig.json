@@ -1,0 +1,12 @@
+{
+    "include": [
+        "./index.ts"
+    ],
+    "exclude": [],
+    "compilerOptions": {
+        "target": "ES2022",
+        "outDir": ".",
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
+    }
+}
