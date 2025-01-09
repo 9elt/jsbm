@@ -52,7 +52,8 @@ prealloc | 3.03ms ±467μs :1%
 
 ## CLI Usage
 
-```Usage: jsbm [runtimes] [file] [options]
+```
+Usage: jsbm [runtimes] [file] [options]
 runtimes:
     bun, deno, node, ts-node
 options:
