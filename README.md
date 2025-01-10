@@ -67,8 +67,8 @@ runtimes:
 options:
     --version, -V    print version
     --help           print help
-    --keep           keep generated file
-    --code           print benchmark code
+    --keep           keep generated file(s)
+    --code           print measured code
     --md             print results as markdown
     --sample         number of samples
     --iter           number of iterations

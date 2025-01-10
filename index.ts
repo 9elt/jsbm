@@ -4,7 +4,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import ts from "typescript";
 
-const VERSION = "0.1.2";
+const VERSION = "0.2.0";
 
 const HELP = `jsbm [runtimes] [files] [options]
 runtimes:
@@ -12,8 +12,8 @@ runtimes:
 options:
     --version, -V    print version
     --help           print help
-    --keep           keep generated file
-    --code           print benchmark code
+    --keep           keep generated file(s)
+    --code           print measured code
     --md             print results as markdown
     --sample         number of samples
     --iter           number of iterations
@@ -25,7 +25,9 @@ const RUNTIMES: Runtime[] = ["bun", "deno", "node", "ts-node"];
 
 const versions: { [R in Runtime]?: string } = {};
 
-const PRINTER = ts.createPrinter();
+const PRINTER = ts.createPrinter({
+    newLine: ts.NewLineKind.LineFeed,
+});
 
 const TF = ts.factory;
 
@@ -214,6 +216,8 @@ function printCode(path: string, ext: "ts" | "js") {
 }
 
 function createBenchmarkCode(path: string, options: Args): string {
+    const isTS = path.endsWith("ts") || undefined;
+
     const file = fileCache[path] || (
         fileCache[path] = ts
             .createProgram([path], { allowJs: true })
@@ -273,6 +277,7 @@ function createBenchmarkCode(path: string, options: Args): string {
                     benchmark(_node, {
                         ...options,
                         id: displayId,
+                        ts: isTS,
                     })
                 );
 
@@ -297,82 +302,73 @@ function createBenchmarkCode(path: string, options: Args): string {
         return ts.visitNode(node, visit);
     }]);
 
-    return util(options) + PRINTER.printNode(
-        ts.EmitHint.Unspecified,
-        trasnformed.transformed[0],
-        file
-    );
+    const utility = createUtil({
+        ...options,
+        ts: isTS
+    });
+
+    function printNode(node: ts.Node) {
+        return PRINTER.printNode(
+            ts.EmitHint.Unspecified,
+            node,
+            file
+        );
+    }
+
+    return `\
+/*
+ * auto-generated using jsbm (https://github.com/9elt/jsbm)
+ * samples ${options.sample}
+ * iter ${options.iter}
+ */
+`
+        + utility.map(printNode).join("\n")
+        + "\n"
+        + printNode(trasnformed.transformed[0]);
 }
 
 function benchmark(code: ts.Block, options: Args & {
     id: string;
+    ts: true | undefined;
 }) {
     // try {
     return TF.createTryStatement(
         TF.createBlock([
             // const __samples = new Array(options.sample);
-            TF.createVariableStatement(undefined,
-                TF.createVariableDeclarationList([
-                    TF.createVariableDeclaration(
-                        TF.createIdentifier("__samples"),
-                        undefined,
-                        undefined,
-                        TF.createNewExpression(
-                            TF.createIdentifier("Array"),
-                            undefined,
-                            TF.createNodeArray([TF.createNumericLiteral(options.sample)])
-                        )
-                    )
-                ], ts.NodeFlags.Const)
+            createVarStatement(
+                "__samples",
+                TF.createNewExpression(
+                    TF.createIdentifier("Array"),
+                    options.ts && TF.createNodeArray([
+                        TF.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+                    ]),
+                    TF.createNodeArray([TF.createNumericLiteral(options.sample)])
+                ),
+                ts.NodeFlags.Const,
             ),
             // for (let __sample_i = 0; __sample_i < options.sample; __sample_i++) {
             TF.createForStatement(
-                TF.createVariableDeclarationList([
-                    TF.createVariableDeclaration(
-                        TF.createIdentifier("__sample_i"),
-                        undefined,
-                        undefined,
-                        TF.createNumericLiteral(0)
-                    )
-                ], ts.NodeFlags.Let),
-                TF.createBinaryExpression(
+                createVar("__sample_i", TF.createNumericLiteral(0), ts.NodeFlags.Let),
+                TF.createLessThan(
                     TF.createIdentifier("__sample_i"),
-                    ts.SyntaxKind.LessThanToken,
                     TF.createNumericLiteral(options.sample)
                 ),
                 TF.createPostfixIncrement(TF.createIdentifier("__sample_i")),
                 TF.createBlock([
                     // const __start = performance.now();
-                    TF.createVariableStatement(undefined,
-                        TF.createVariableDeclarationList([
-                            TF.createVariableDeclaration(
-                                TF.createIdentifier("__start"),
-                                undefined,
-                                undefined,
-                                TF.createCallExpression(
-                                    TF.createPropertyAccessExpression(
-                                        TF.createIdentifier("performance"),
-                                        TF.createIdentifier("now")
-                                    ),
-                                    undefined,
-                                    []
-                                )
-                            ),
-                        ], ts.NodeFlags.Const)
-                    ),
+                    createVarStatement("__start", TF.createCallExpression(
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("performance"),
+                            TF.createIdentifier("now")
+                        ),
+                        undefined,
+                        []
+                    ), ts.NodeFlags.Const),
                     // for (let __iter = 0; __iter < options.iter; __iter++) {
                     options.iter > 1 ? TF.createForStatement(
-                        TF.createVariableDeclarationList([
-                            TF.createVariableDeclaration(
-                                TF.createIdentifier("__iter"),
-                                undefined,
-                                undefined,
-                                TF.createNumericLiteral(0)
-                            )
-                        ], ts.NodeFlags.Let),
-                        TF.createBinaryExpression(
+                        createVar("__iter", TF.createNumericLiteral(0), ts.NodeFlags.Let),
+                        TF.createLessThan(
                             TF.createIdentifier("__iter"),
-                            ts.SyntaxKind.LessThanToken,
                             TF.createNumericLiteral(options.iter)
                         ),
                         TF.createPostfixIncrement(TF.createIdentifier("__iter")),
@@ -385,7 +381,7 @@ function benchmark(code: ts.Block, options: Args & {
                                 TF.createIdentifier("__samples"),
                                 TF.createIdentifier("__sample_i")
                             ),
-                            TF.createBinaryExpression(
+                            TF.createSubtract(
                                 TF.createCallExpression(
                                     TF.createPropertyAccessExpression(
                                         TF.createIdentifier("performance"),
@@ -394,7 +390,6 @@ function benchmark(code: ts.Block, options: Args & {
                                     undefined,
                                     []
                                 ),
-                                ts.SyntaxKind.MinusToken,
                                 TF.createIdentifier("__start")
                             )
                         )
@@ -419,9 +414,7 @@ function benchmark(code: ts.Block, options: Args & {
         ]),
         // } catch (e) {
         TF.createCatchClause(
-            TF.createVariableDeclaration(
-                "e",
-            ),
+            TF.createVariableDeclaration("e"),
             TF.createBlock([
                 // __jsbm_print(options.id, e);
                 TF.createExpressionStatement(
@@ -453,57 +446,484 @@ function createLiteral(value: string) {
     return expression!;
 }
 
-function util(options: Args) {
-    return `/*
-    auto-generated using jsbm (https://github.com/9elt/jsbm)
-    samples ${options.sample}
-    iter ${options.iter}
-*/
-function __jsbm_time_unit(m) {
-    return m < 1_000
-        ? m.toFixed(0) + "μs"
-        : m < 1_000_000
-            ? (m / 1_000).toFixed(2) + "ms"
-            : (m / 1_000_000).toFixed(2) + "s";
+function createVar(name: string, initializer?: ts.Expression, flags?: ts.NodeFlags, type: ts.TypeNode | undefined = undefined) {
+    return TF.createVariableDeclarationList([
+        TF.createVariableDeclaration(
+            TF.createIdentifier(name),
+            undefined,
+            type,
+            initializer
+        )
+    ], flags);
 }
-function __jsbm_result(samples) {
-    samples.sort((a, b) => a - b);
-    const q = samples.length / 4;
-    const sampleQ3 = samples[Math.ceil(q * 3)];
-    const sampleQ1 = samples[Math.floor(q)];
-    const m = (sampleQ3 - sampleQ1) * 1.5;
-    const sampleQ3e = sampleQ3 + m;
-    const sampleQ1s = sampleQ1 - m;
-    let mean = 0;
-    const _samples = [];
-    for (let i = 0; i < samples.length; i++) {
-        const sample = samples[i];
-        if (sample <= sampleQ3e && sample >= sampleQ1s) {
-            _samples.push(sample);
-            mean += sample;
-        }
-    }
-    mean /= _samples.length;
-    let std = 0;
-    for (let i = 0; i < _samples.length; i++) {
-        std += (_samples[i] - mean) ** 2;
-    }
-    mean = Math.round(mean * 1000);
-    std = Math.round(Math.sqrt(std / _samples.length) * 1000);
-    const outliers = Math.round(100 - (_samples.length * 100 / samples.length));
-    return __jsbm_time_unit(mean)
-        + " ±" + __jsbm_time_unit(std)
-        + " :" + outliers + "%";
+
+function createVarStatement(name: string, initializer: ts.Expression, flags?: ts.NodeFlags, type: ts.TypeNode | undefined = undefined) {
+    return TF.createVariableStatement(
+        undefined,
+        createVar(name, initializer, flags, type)
+    );
 }
-function __jsbm_print(id, data) ${options.markdown ? `{
-    console.log("|", id, "|", data, "|");
-}
-console.log("| id | result |");
-console.log("|----|--------|");\
-` : `{
-    console.log(id, "|", data);
-}`}
-`;
+
+function createUtil(options: Args & {
+    ts: true | undefined;
+}) {
+    return [
+        TF.createFunctionDeclaration(
+            undefined,
+            undefined,
+            TF.createIdentifier("__jsbm_time_unit"),
+            undefined,
+            [TF.createParameterDeclaration(
+                undefined,
+                undefined,
+                TF.createIdentifier("m"),
+                undefined,
+                options.ts && TF.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+            )],
+            undefined,
+            TF.createBlock([
+                TF.createReturnStatement(
+                    TF.createConditionalExpression(
+                        TF.createLessThan(
+                            TF.createIdentifier("m"),
+                            TF.createNumericLiteral(1_000)
+                        ),
+                        undefined,
+                        TF.createAdd(
+                            TF.createCallExpression(
+                                TF.createPropertyAccessExpression(
+                                    TF.createIdentifier("m"),
+                                    TF.createIdentifier("toFixed")
+                                ),
+                                undefined,
+                                [TF.createNumericLiteral(0)]
+                            ),
+                            TF.createStringLiteral("μs")
+                        ),
+                        undefined,
+                        TF.createConditionalExpression(
+                            TF.createLessThan(
+                                TF.createIdentifier("m"),
+                                TF.createNumericLiteral(1_000_000)
+                            ),
+                            undefined,
+                            TF.createAdd(
+                                TF.createCallExpression(
+                                    TF.createPropertyAccessExpression(
+                                        TF.createDivide(
+                                            TF.createIdentifier("m"),
+                                            TF.createNumericLiteral(1_000)
+                                        ),
+                                        TF.createIdentifier("toFixed")
+                                    ),
+                                    undefined,
+                                    [TF.createNumericLiteral(2)]
+                                ),
+                                TF.createStringLiteral("ms")
+                            ),
+                            undefined,
+                            TF.createAdd(
+                                TF.createCallExpression(
+                                    TF.createPropertyAccessExpression(
+                                        TF.createDivide(
+                                            TF.createIdentifier("m"),
+                                            TF.createNumericLiteral(1_000_000)
+                                        ),
+                                        TF.createIdentifier("toFixed")
+                                    ),
+                                    undefined,
+                                    [TF.createNumericLiteral(2)]
+                                ),
+                                TF.createStringLiteral("s")
+                            )
+                        )
+                    )
+                )
+            ])
+        ),
+        TF.createFunctionDeclaration(
+            undefined,
+            undefined,
+            TF.createIdentifier("__jsbm_result"),
+            undefined,
+            [TF.createParameterDeclaration(
+                undefined,
+                undefined,
+                TF.createIdentifier("samples"),
+                undefined,
+                options.ts && TF.createArrayTypeNode(
+                    TF.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+                ),
+            )],
+            undefined,
+            TF.createBlock([
+                TF.createExpressionStatement(
+                    TF.createCallExpression(
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("samples"),
+                            TF.createIdentifier("sort")
+                        ),
+                        undefined,
+                        [TF.createArrowFunction(
+                            undefined,
+                            undefined,
+                            [TF.createParameterDeclaration(
+                                undefined,
+                                undefined,
+                                TF.createIdentifier("a"),
+                                undefined,
+                                options.ts && TF.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+                            ), TF.createParameterDeclaration(
+                                undefined,
+                                undefined,
+                                TF.createIdentifier("b"),
+                                undefined,
+                                options.ts && TF.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword),
+                            )],
+                            undefined,
+                            undefined,
+                            TF.createSubtract(
+                                TF.createIdentifier("a"),
+                                TF.createIdentifier("b")
+                            )
+                        )]
+                    )
+                ),
+                createVarStatement("q",
+                    TF.createDivide(
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("samples"),
+                            TF.createIdentifier("length")
+                        ),
+                        TF.createNumericLiteral(4)
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                createVarStatement("sampleQ3",
+                    TF.createElementAccessExpression(
+                        TF.createIdentifier("samples"),
+                        TF.createCallExpression(
+                            TF.createPropertyAccessExpression(
+                                TF.createIdentifier("Math"),
+                                TF.createIdentifier("ceil")
+                            ),
+                            undefined,
+                            [TF.createMultiply(
+                                TF.createIdentifier("q"),
+                                TF.createNumericLiteral(3)
+                            )]
+                        )
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                createVarStatement("sampleQ1",
+                    TF.createElementAccessExpression(
+                        TF.createIdentifier("samples"),
+                        TF.createCallExpression(
+                            TF.createPropertyAccessExpression(
+                                TF.createIdentifier("Math"),
+                                TF.createIdentifier("floor")
+                            ),
+                            undefined,
+                            [TF.createIdentifier("q")]
+                        )
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                createVarStatement("m",
+                    TF.createMultiply(
+                        TF.createSubtract(
+                            TF.createIdentifier("sampleQ3"),
+                            TF.createIdentifier("sampleQ1")
+                        ),
+                        TF.createNumericLiteral(1.5)
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                createVarStatement("sampleQ3e",
+                    TF.createAdd(
+                        TF.createIdentifier("sampleQ3"),
+                        TF.createIdentifier("m")
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                createVarStatement("sampleQ1s",
+                    TF.createSubtract(
+                        TF.createIdentifier("sampleQ1"),
+                        TF.createIdentifier("m")
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                createVarStatement("mean",
+                    TF.createNumericLiteral(0),
+                    ts.NodeFlags.Let
+                ),
+                createVarStatement("_samples",
+                    TF.createArrayLiteralExpression([]),
+                    ts.NodeFlags.Const,
+                    options.ts && TF.createArrayTypeNode(
+                        TF.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
+                    )
+                ),
+                TF.createForStatement(
+                    createVar("i", TF.createNumericLiteral(0), ts.NodeFlags.Let),
+                    TF.createLessThan(
+                        TF.createIdentifier("i"),
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("samples"),
+                            TF.createIdentifier("length")
+                        )
+                    ),
+                    TF.createPostfixIncrement(TF.createIdentifier("i")),
+                    TF.createBlock([
+                        createVarStatement("sample",
+                            TF.createElementAccessExpression(
+                                TF.createIdentifier("samples"),
+                                TF.createIdentifier("i")
+                            ),
+                            ts.NodeFlags.Const
+                        ),
+                        TF.createIfStatement(
+                            TF.createLogicalAnd(
+                                TF.createLessThanEquals(
+                                    TF.createIdentifier("sample"),
+                                    TF.createIdentifier("sampleQ3e")
+                                ),
+                                TF.createGreaterThanEquals(
+                                    TF.createIdentifier("sample"),
+                                    TF.createIdentifier("sampleQ1s")
+                                )
+                            ),
+                            TF.createBlock([
+                                TF.createExpressionStatement(
+                                    TF.createCallExpression(
+                                        TF.createPropertyAccessExpression(
+                                            TF.createIdentifier("_samples"),
+                                            TF.createIdentifier("push")
+                                        ),
+                                        undefined,
+                                        [TF.createIdentifier("sample")]
+                                    )
+                                ),
+                                TF.createExpressionStatement(
+                                    TF.createBinaryExpression(
+                                        TF.createIdentifier("mean"),
+                                        ts.SyntaxKind.PlusEqualsToken,
+                                        TF.createIdentifier("sample")
+                                    )
+                                )
+                            ])
+                        ),
+                    ]),
+                ),
+                TF.createExpressionStatement(
+                    TF.createBinaryExpression(
+                        TF.createIdentifier("mean"),
+                        ts.SyntaxKind.SlashEqualsToken,
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("_samples"),
+                            TF.createIdentifier("length")
+                        )
+                    )
+                ),
+                createVarStatement("std", TF.createNumericLiteral(0), ts.NodeFlags.Let),
+                TF.createForStatement(
+                    createVar("i", TF.createNumericLiteral(0), ts.NodeFlags.Let),
+                    TF.createLessThan(
+                        TF.createIdentifier("i"),
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("_samples"),
+                            TF.createIdentifier("length")
+                        )
+                    ),
+                    TF.createPostfixIncrement(TF.createIdentifier("i")),
+                    TF.createBlock([
+                        TF.createExpressionStatement(
+                            TF.createBinaryExpression(
+                                TF.createIdentifier("std"),
+                                ts.SyntaxKind.PlusEqualsToken,
+                                TF.createBinaryExpression(
+                                    TF.createSubtract(
+                                        TF.createElementAccessExpression(
+                                            TF.createIdentifier("_samples"),
+                                            TF.createIdentifier("i")
+                                        ),
+                                        TF.createIdentifier("mean")
+                                    ),
+                                    ts.SyntaxKind.AsteriskAsteriskToken,
+                                    TF.createNumericLiteral(2)
+                                )
+                            )
+                        )
+                    ])
+                ),
+                TF.createExpressionStatement(
+                    TF.createAssignment(
+                        TF.createIdentifier("mean"),
+                        TF.createCallExpression(
+                            TF.createPropertyAccessExpression(
+                                TF.createIdentifier("Math"),
+                                TF.createIdentifier("round")
+                            ),
+                            undefined,
+                            [TF.createBinaryExpression(
+                                TF.createIdentifier("mean"),
+                                ts.SyntaxKind.AsteriskToken,
+                                TF.createNumericLiteral(1000)
+                            )]
+                        )
+                    )
+                ),
+                TF.createExpressionStatement(
+                    TF.createAssignment(
+                        TF.createIdentifier("std"),
+                        TF.createCallExpression(
+                            TF.createPropertyAccessExpression(
+                                TF.createIdentifier("Math"),
+                                TF.createIdentifier("round")
+                            ),
+                            undefined,
+                            [TF.createMultiply(
+                                TF.createCallExpression(
+                                    TF.createPropertyAccessExpression(
+                                        TF.createIdentifier("Math"),
+                                        TF.createIdentifier("sqrt")
+                                    ),
+                                    undefined,
+                                    [TF.createDivide(
+                                        TF.createIdentifier("std"),
+                                        TF.createPropertyAccessExpression(
+                                            TF.createIdentifier("_samples"),
+                                            TF.createIdentifier("length")
+                                        )
+                                    )]
+                                ),
+                                TF.createNumericLiteral(1000)
+                            )]
+                        )
+                    ),
+                ),
+                createVarStatement("outliers",
+                    TF.createCallExpression(
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("Math"),
+                            TF.createIdentifier("round")
+                        ),
+                        undefined,
+                        [TF.createSubtract(
+                            TF.createNumericLiteral(100),
+                            TF.createDivide(
+                                TF.createMultiply(
+                                    TF.createPropertyAccessExpression(
+                                        TF.createIdentifier("_samples"),
+                                        TF.createIdentifier("length")
+                                    ),
+                                    TF.createNumericLiteral(100)
+                                ),
+                                TF.createPropertyAccessExpression(
+                                    TF.createIdentifier("samples"),
+                                    TF.createIdentifier("length")
+                                )
+                            )
+                        )]
+                    ),
+                    ts.NodeFlags.Const
+                ),
+                TF.createReturnStatement(
+                    TF.createAdd(
+                        TF.createAdd(
+                            TF.createAdd(
+                                TF.createCallExpression(
+                                    TF.createIdentifier("__jsbm_time_unit"),
+                                    undefined,
+                                    [TF.createIdentifier("mean")]
+                                ),
+                                TF.createStringLiteral(" ±")
+                            ),
+                            TF.createCallExpression(
+                                TF.createIdentifier("__jsbm_time_unit"),
+                                undefined,
+                                [TF.createIdentifier("std")]
+                            )
+                        ),
+                        TF.createAdd(
+                            TF.createAdd(
+                                TF.createStringLiteral(" :"),
+                                TF.createIdentifier("outliers"),
+                            ),
+                            TF.createStringLiteral("%"),
+                        )
+                    ),
+                ),
+            ]),
+        ),
+        TF.createFunctionDeclaration(
+            undefined,
+            undefined,
+            TF.createIdentifier("__jsbm_print"),
+            undefined,
+            [TF.createParameterDeclaration(
+                undefined,
+                undefined,
+                TF.createIdentifier("id"),
+                undefined,
+                options.ts && TF.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+            ), TF.createParameterDeclaration(
+                undefined,
+                undefined,
+                TF.createIdentifier("data"),
+                undefined,
+                options.ts && TF.createKeywordTypeNode(ts.SyntaxKind.StringKeyword),
+            )],
+            undefined,
+            TF.createBlock([
+                TF.createExpressionStatement(
+                    TF.createCallExpression(
+                        TF.createPropertyAccessExpression(
+                            TF.createIdentifier("console"),
+                            TF.createIdentifier("log")
+                        ),
+                        undefined,
+                        options.markdown ? [
+                            TF.createStringLiteral("|"),
+                            TF.createIdentifier("id"),
+                            TF.createStringLiteral("|"),
+                            TF.createIdentifier("data"),
+                            TF.createStringLiteral("|"),
+                        ] : [
+                            TF.createIdentifier("id"),
+                            TF.createStringLiteral("|"),
+                            TF.createIdentifier("data"),
+                        ]
+                    )
+                ),
+            ])
+        ),
+        options.markdown && TF.createExpressionStatement(
+            TF.createCallExpression(
+                TF.createPropertyAccessExpression(
+                    TF.createIdentifier("console"),
+                    TF.createIdentifier("log")
+                ),
+                undefined,
+                [
+                    TF.createStringLiteral("| id | result |"),
+                ]
+            )
+        ),
+        options.markdown && TF.createExpressionStatement(
+            TF.createCallExpression(
+                TF.createPropertyAccessExpression(
+                    TF.createIdentifier("console"),
+                    TF.createIdentifier("log")
+                ),
+                undefined,
+                [
+                    TF.createStringLiteral("|----|--------|"),
+                ]
+            )
+        ),
+    ].filter(Boolean);
 }
 
 async function getVersion(runtime: Runtime): Promise<string> {
