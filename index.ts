@@ -4,11 +4,13 @@ import { spawn } from "child_process";
 import fs from "fs";
 import ts from "typescript";
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
+
+const RUNTIMES: Runtime[] = ["bun", "deno", "node"];
 
 const HELP = `jsbm [runtimes] [files] [options]
 runtimes:
-    bun, deno, node, ts-node
+    ${RUNTIMES.join(", ")}
 options:
     --version, -V    print version
     --help           print help
@@ -20,8 +22,6 @@ options:
 `;
 
 type Runtime = "bun" | "deno" | "node" | "ts-node";
-
-const RUNTIMES: Runtime[] = ["bun", "deno", "node", "ts-node"];
 
 const versions: { [R in Runtime]?: string } = {};
 
@@ -143,14 +143,28 @@ type Args = {
     }
 
     for (const file of files) {
+        const isTS = file.endsWith("ts") || undefined;
+
         const outputFile = addJSBMExtension(file);
 
         fs.writeFileSync(
             outputFile,
-            createBenchmarkCode(file, options)
+            createBenchmarkCode(file, { ...options, ts: isTS })
         );
 
         for (const runtime of runtimes) {
+            if (isTS && runtime === "node") {
+                try {
+                    if (!versions["ts-node"]) {
+                        versions["ts-node"] = await getVersion("ts-node");
+                    }
+                }
+                catch {
+                    console.log(">" + file, "Error: ts-node is required to run typescript files with node");
+                    continue;
+                }
+            }
+
             if (options.markdown) {
                 console.log("###", "*" + file + "*,", runtime + "@" + versions[runtime]);
                 console.log("iter:" + options.iter, "samples:" + options.sample);
@@ -158,7 +172,10 @@ type Args = {
                 console.log(">" + file, runtime + "@" + versions[runtime], "iter:" + options.iter, "samples:" + options.sample);
             }
 
-            const proc = spawn(runtime, [outputFile]);
+            const proc = spawn(
+                isTS && runtime === "node" ? "ts-node" : runtime,
+                [outputFile]
+            );
 
             proc.stdout.pipe(process.stdout);
             proc.stderr.pipe(process.stderr);
@@ -215,9 +232,12 @@ function printCode(path: string, ext: "ts" | "js") {
     print(file);
 }
 
-function createBenchmarkCode(path: string, options: Args): string {
-    const isTS = path.endsWith("ts") || undefined;
-
+function createBenchmarkCode(
+    path: string,
+    options: Args & {
+        ts: true | undefined
+    }
+): string {
     const file = fileCache[path] || (
         fileCache[path] = ts
             .createProgram([path], { allowJs: true })
@@ -277,7 +297,6 @@ function createBenchmarkCode(path: string, options: Args): string {
                     benchmark(_node, {
                         ...options,
                         id: displayId,
-                        ts: isTS,
                     })
                 );
 
@@ -302,10 +321,7 @@ function createBenchmarkCode(path: string, options: Args): string {
         return ts.visitNode(node, visit);
     }]);
 
-    const utility = createUtil({
-        ...options,
-        ts: isTS
-    });
+    const utility = createUtil(options);
 
     function printNode(node: ts.Node) {
         return PRINTER.printNode(

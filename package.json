@@ -1,6 +1,6 @@
 {
     "name": "@9elt/jsbm",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Benchmark JavaScript with JSDoc comments",
     "scripts": {
         "build": "tsc",

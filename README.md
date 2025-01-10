@@ -63,7 +63,7 @@ npm install -g @9elt/jsbm
 ```
 jsbm [runtimes] [files] [options]
 runtimes:
-    bun, deno, node, ts-node
+    bun, deno, node
 options:
     --version, -V    print version
     --help           print help
