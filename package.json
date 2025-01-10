@@ -1,7 +1,7 @@
 {
     "name": "@9elt/jsbm",
-    "version": "0.2.1",
-    "description": "Benchmark JavaScript with JSDoc comments",
+    "version": "0.2.2",
+    "description": "A CLI to benchmark JavaScript (and TypeScript) on the spot, using JSDoc comments",
     "scripts": {
         "build": "tsc",
         "pub": "npm run build && npm publish"

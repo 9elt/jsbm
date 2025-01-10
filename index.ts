@@ -4,7 +4,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import ts from "typescript";
 
-const VERSION = "0.2.1";
+const VERSION = "0.2.2";
 
 const RUNTIMES: Runtime[] = ["bun", "deno", "node"];
 
@@ -201,7 +201,7 @@ function printCode(path: string, ext: "ts" | "js") {
     );
 
     if (!file) {
-        throw new Error("File" + path + "not found");
+        throw new Error("File " + path + " not found");
     }
 
     function print(node: ts.Node) {
@@ -245,7 +245,7 @@ function createBenchmarkCode(
     );
 
     if (!file) {
-        throw new Error("File" + path + "not found");
+        throw new Error("File " + path + " not found");
     }
 
     const trasnformed = ts.transform(file, [(context: ts.TransformationContext) => (node: ts.Node) => {
@@ -950,7 +950,7 @@ async function getVersion(runtime: Runtime): Promise<string> {
         proc.stderr.addListener("data", reject);
     });
 
-    return String(version).trim();
+    return String(version).trim().replace(/\n/g, "/");
 }
 
 function addJSBMExtension(file: string): string {

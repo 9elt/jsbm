@@ -1,10 +1,10 @@
 # JSBM
 
-Benchmark JavaScript with JSDoc comments.
+A CLI to benchmark JavaScript (and TypeScript) on the spot, using JSDoc comments
 
 ## Usage
 
-Insert a JSDoc comment with a `@jsbm` tag above a function or block.
+Insert a JSDoc comment with a `@jsbm` tag above a block, statement or function
 
 <sub>*example.js*</sub>
 
