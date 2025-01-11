@@ -1,12 +1,12 @@
 {
     "include": [
-        "./index.ts"
+        "src/**/*"
     ],
     "exclude": [],
     "compilerOptions": {
-        "target": "ES2022",
-        "outDir": ".",
-        "module": "NodeNext",
-        "moduleResolution": "nodenext",
+        "noEmit": true,
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
     }
 }

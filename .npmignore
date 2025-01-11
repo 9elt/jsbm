@@ -1,3 +1,4 @@
-index.ts
+src
 test.js
+test.jsbm.js
 !index.js
