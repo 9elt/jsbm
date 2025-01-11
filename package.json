@@ -1,6 +1,6 @@
 {
     "name": "@9elt/jsbm",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "A CLI to benchmark JavaScript (and TypeScript) on the spot, using JSDoc comments",
     "type": "module",
     "scripts": {

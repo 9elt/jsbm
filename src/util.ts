@@ -59,3 +59,88 @@ export function getJSBMTagId(
 
     return typeof _id === "string" ? _id : _id?.join(" ");
 }
+
+export enum TagItem {
+    FunctionExpr,
+    Data,
+}
+
+type FunctionExpr = {
+    type: TagItem.FunctionExpr;
+    expr: string;
+    name: string;
+};
+
+type _Data = {
+    type: TagItem.Data;
+    data: string[];
+};
+
+type Data = {
+    type: TagItem.Data;
+    data: string;
+};
+
+type _Item = FunctionExpr | _Data;
+
+type Item = FunctionExpr | Data;
+
+const FUNCTION_EXPR = /^(\w+)\s*\(.*\)$/;
+
+export function parseJSBMTagId(id: string) {
+    const parts: string[] = [""];
+
+    let esc: ")" | "]" | "}" | ">" | null = null;
+    for (const char of id) {
+        if (char === " " && !esc) {
+            parts.push("");
+            continue;
+        }
+        parts[parts.length - 1] += char;
+        if (esc) {
+            if (char === esc) {
+                esc = null;
+            }
+        } else if (char === "(") {
+            esc = ")";
+        } else if (char === "[") {
+            esc = "]";
+        } else if (char === "{") {
+            esc = "}";
+        } else if (char === "<") {
+            esc = ">";
+        }
+    }
+
+    const items: Item[] = [];
+    let item: _Item = { type: TagItem.Data, data: [] };
+
+    for (const part of parts) {
+        if (FUNCTION_EXPR.test(part)) {
+            const [expr, name] = FUNCTION_EXPR.exec(part);
+            if (item.data.length) {
+                items.push({
+                    ...item,
+                    data: item.data.join(" "),
+                });
+                item = { type: TagItem.Data, data: [] };
+            }
+            items.push({
+                type: TagItem.FunctionExpr,
+                expr,
+                name,
+            });
+        } else {
+            item.data.push(part);
+        }
+    }
+
+    if (item.data.length) {
+        items.push({
+            ...item,
+            data: item.data.join(" "),
+        });
+    }
+
+    return items;
+}

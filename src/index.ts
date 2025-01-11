@@ -36,7 +36,7 @@ const files: string[] = [];
 
 const options: Args = {
     sample: 1000,
-    iter: 1000,
+    iter: 1,
 };
 
 let option: keyof typeof options | null = null;
@@ -48,7 +48,7 @@ for (const arg of args) {
         files.push(arg);
     } else if (arg === "--version" || arg === "-V") {
         options.version = true;
-    } else if (arg === "--help") {
+    } else if (arg === "--help" || arg === "-h") {
         options.help = true;
     } else if (arg === "--keep") {
         options.keepFile = true;
@@ -108,7 +108,7 @@ if (files.length === 0) {
 
 if (options.printCode) {
     for (const file of files) {
-        printCode(file);
+        printCode(file, options);
     }
 }
 
@@ -123,7 +123,9 @@ for (const file of files) {
     );
 
     function deleteFile() {
-        fs.unlinkSync(outputFile);
+        if (fs.existsSync(outputFile)) {
+            fs.unlinkSync(outputFile);
+        }
     }
 
     if (!options.keepFile) {
