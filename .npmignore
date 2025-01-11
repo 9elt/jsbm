@@ -1,4 +1,6 @@
 src
 test.js
 test.jsbm.js
+build.js
+build.config.js
 !index.js
