@@ -23,6 +23,12 @@ options:
 
 export const PRINTER = ts.createPrinter({
     newLine: ts.NewLineKind.LineFeed,
+    removeComments: true,
+});
+
+export const PRETTY_PRINTER = ts.createPrinter({
+    newLine: ts.NewLineKind.LineFeed,
+    removeComments: false,
 });
 
 export const TF = ts.factory;

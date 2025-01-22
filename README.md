@@ -48,10 +48,10 @@ function prealloc(renamedArray) {
 
 ```
 $ jsbm example.js
->example.js bun@1.1.42 iter:1000 samples:1000
-map | 3.67ms ±426μs :0%
-push | 7.90ms ±264μs :14%
-prealloc | 3.03ms ±467μs :1%
+>example.js bun@1.1.42 iter:1 samples:1000
+map | 14.95μs ±4.17μs :4%
+push | 17.04μs ±6.96μs :1%
+prealloc | 2.85μs ±0.26μs :24%
 ```
 
 ## Installation

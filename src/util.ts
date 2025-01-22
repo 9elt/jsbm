@@ -60,6 +60,29 @@ export function getJSBMTagId(
     return typeof _id === "string" ? _id : _id?.join(" ");
 }
 
+export function nodeContainsJSBM(
+    node: ts.Node,
+    file: ts.SourceFile
+) {
+    let contains = false;
+
+    node.forEachChild((node) => {
+        try {
+            if (
+                !contains &&
+                (getJSBMTagId(node.getChildAt(0, file)) ||
+                    nodeContainsJSBM(node, file))
+            ) {
+                contains = true;
+            }
+        } catch {
+            return;
+        }
+    });
+
+    return contains;
+}
+
 export enum TagItem {
     FunctionExpr,
     Data,

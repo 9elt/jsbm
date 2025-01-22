@@ -4,6 +4,7 @@ import { PRINTER, TF } from "./consts";
 import {
     getJSBMTagId,
     getSourceFile,
+    nodeContainsJSBM,
     parseJSBMTagId,
     TagItem,
 } from "./util";
@@ -56,25 +57,42 @@ function createVisit(
         ts: true | undefined;
     }
 ) {
-    return function visit(node: ts.Node) {
-        node = ts.visitEachChild(node, visit, context);
+    return function visit(node: ts.Node, count = 0) {
+        const isSourceFile = ts.isSourceFile(node);
+        const isBlock = ts.isBlock(node);
+
+        if (!isSourceFile && !isBlock) {
+            return ts.visitEachChild(node, visit, context);
+        }
 
         const update: ts.Node[] = [];
 
-        let isUpdated = false;
+        let isModified = false;
 
-        node.forEachChild((node) => {
-            update.push(node);
+        node.forEachChild((child) => {
+            const hasNestedJSBM = nodeContainsJSBM(child, file);
+
+            if (!hasNestedJSBM) {
+                update.push(child);
+            }
 
             try {
-                node.getChildCount(file);
+                child.getChildCount(file);
             } catch {
+                if (hasNestedJSBM) {
+                    update.push(ts.visitNode(child, visit));
+                    isModified = true;
+                }
                 return;
             }
 
-            const id = getJSBMTagId(node.getChildAt(0, file));
+            const id = getJSBMTagId(child.getChildAt(0, file));
 
             if (!id) {
+                if (hasNestedJSBM) {
+                    update.push(ts.visitNode(child, visit));
+                    isModified = true;
+                }
                 return;
             }
 
@@ -88,17 +106,21 @@ function createVisit(
                 )?.name ||
                 "";
 
-            const _node =
-                ts.isFunctionDeclaration(node) && node.name
-                    ? TF.createBlock([
-                          TF.createExpressionStatement(
-                              createFunctionCallExpr(
-                                  node,
-                                  parts
-                              )
-                          ),
-                      ])
-                    : TF.createBlock([node as ts.Statement]);
+            const callExpr =
+                ts.isFunctionDeclaration(child) &&
+                child.name &&
+                TF.createExpressionStatement(
+                    createFunctionCallExpr(child, parts)
+                );
+
+            const _node = callExpr
+                ? TF.createBlock([callExpr])
+                : TF.createBlock([child as ts.Statement]);
+
+            // NOTE: push function declaration
+            if (ts.isFunctionDeclaration(child)) {
+                update.push(child);
+            }
 
             update.push(
                 createBenchmark(_node, {
@@ -107,28 +129,40 @@ function createVisit(
                 })
             );
 
-            isUpdated = true;
+            if (hasNestedJSBM) {
+                update.push(
+                    TF.createBlock(
+                        [
+                            ts.visitNode(
+                                child,
+                                visit
+                            ) as ts.Statement,
+                            callExpr as ts.Statement,
+                        ].filter(Boolean)
+                    )
+                );
+            }
+
+            isModified = true;
         });
 
-        if (!isUpdated) {
+        if (!isModified) {
             return node;
         }
 
-        if (ts.isSourceFile(node)) {
+        if (isSourceFile) {
             return TF.updateSourceFile(
                 node,
                 update as ts.Statement[]
             );
         }
 
-        if (ts.isBlock(node)) {
+        if (isBlock) {
             return TF.updateBlock(
                 node,
                 update as ts.Statement[]
             );
         }
-
-        return node;
     };
 }
 
@@ -368,7 +402,7 @@ function createUtil(
                 TF.createParameterDeclaration(
                     undefined,
                     undefined,
-                    TF.createIdentifier("m"),
+                    TF.createIdentifier("ms"),
                     undefined,
                     options.ts &&
                         TF.createKeywordTypeNode(
@@ -380,43 +414,43 @@ function createUtil(
             TF.createBlock([
                 TF.createReturnStatement(
                     TF.createConditionalExpression(
-                        TF.createLessThan(
-                            TF.createIdentifier("m"),
+                        TF.createGreaterThan(
+                            TF.createIdentifier("ms"),
                             TF.createNumericLiteral(1_000)
                         ),
                         undefined,
                         TF.createAdd(
                             TF.createCallExpression(
                                 TF.createPropertyAccessExpression(
-                                    TF.createIdentifier("m"),
+                                    TF.createDivide(
+                                        TF.createIdentifier(
+                                            "ms"
+                                        ),
+                                        TF.createNumericLiteral(
+                                            1_000
+                                        )
+                                    ),
                                     TF.createIdentifier(
                                         "toFixed"
                                     )
                                 ),
                                 undefined,
-                                [TF.createNumericLiteral(0)]
+                                [TF.createNumericLiteral(2)]
                             ),
-                            TF.createStringLiteral("μs")
+                            TF.createStringLiteral("s")
                         ),
                         undefined,
                         TF.createConditionalExpression(
-                            TF.createLessThan(
-                                TF.createIdentifier("m"),
-                                TF.createNumericLiteral(
-                                    1_000_000
-                                )
+                            TF.createGreaterThan(
+                                TF.createIdentifier("ms"),
+                                TF.createNumericLiteral(1)
                             ),
                             undefined,
                             TF.createAdd(
                                 TF.createCallExpression(
                                     TF.createPropertyAccessExpression(
-                                        TF.createDivide(
-                                            TF.createIdentifier(
-                                                "m"
-                                            ),
-                                            TF.createNumericLiteral(
-                                                1_000
-                                            )
+                                        TF.createIdentifier(
+                                            "ms"
                                         ),
                                         TF.createIdentifier(
                                             "toFixed"
@@ -431,12 +465,12 @@ function createUtil(
                             TF.createAdd(
                                 TF.createCallExpression(
                                     TF.createPropertyAccessExpression(
-                                        TF.createDivide(
+                                        TF.createMultiply(
                                             TF.createIdentifier(
-                                                "m"
+                                                "ms"
                                             ),
                                             TF.createNumericLiteral(
-                                                1_000_000
+                                                1_000
                                             )
                                         ),
                                         TF.createIdentifier(
@@ -446,7 +480,7 @@ function createUtil(
                                     undefined,
                                     [TF.createNumericLiteral(2)]
                                 ),
-                                TF.createStringLiteral("s")
+                                TF.createStringLiteral("μs")
                             )
                         )
                     )
@@ -765,67 +799,25 @@ function createUtil(
                     ),
                     TF.createExpressionStatement(
                         TF.createAssignment(
-                            TF.createIdentifier("mean"),
-                            TF.createCallExpression(
-                                TF.createPropertyAccessExpression(
-                                    TF.createIdentifier("Math"),
-                                    TF.createIdentifier("round")
-                                ),
-                                undefined,
-                                [
-                                    TF.createBinaryExpression(
-                                        TF.createIdentifier(
-                                            "mean"
-                                        ),
-                                        ts.SyntaxKind
-                                            .AsteriskToken,
-                                        TF.createNumericLiteral(
-                                            1000
-                                        )
-                                    ),
-                                ]
-                            )
-                        )
-                    ),
-                    TF.createExpressionStatement(
-                        TF.createAssignment(
                             TF.createIdentifier("std"),
                             TF.createCallExpression(
                                 TF.createPropertyAccessExpression(
                                     TF.createIdentifier("Math"),
-                                    TF.createIdentifier("round")
+                                    TF.createIdentifier("sqrt")
                                 ),
                                 undefined,
                                 [
-                                    TF.createMultiply(
-                                        TF.createCallExpression(
-                                            TF.createPropertyAccessExpression(
-                                                TF.createIdentifier(
-                                                    "Math"
-                                                ),
-                                                TF.createIdentifier(
-                                                    "sqrt"
-                                                )
-                                            ),
-                                            undefined,
-                                            [
-                                                TF.createDivide(
-                                                    TF.createIdentifier(
-                                                        "std"
-                                                    ),
-                                                    TF.createPropertyAccessExpression(
-                                                        TF.createIdentifier(
-                                                            "_samples"
-                                                        ),
-                                                        TF.createIdentifier(
-                                                            "length"
-                                                        )
-                                                    )
-                                                ),
-                                            ]
+                                    TF.createDivide(
+                                        TF.createIdentifier(
+                                            "std"
                                         ),
-                                        TF.createNumericLiteral(
-                                            1000
+                                        TF.createPropertyAccessExpression(
+                                            TF.createIdentifier(
+                                                "_samples"
+                                            ),
+                                            TF.createIdentifier(
+                                                "length"
+                                            )
                                         )
                                     ),
                                 ]

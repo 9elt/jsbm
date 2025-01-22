@@ -1,21 +1,19 @@
 import ts from "typescript";
-import { PRINTER } from "./consts";
-import { getJSBMTagId, getSourceFile } from "./util";
 import { Args } from ".";
+import { PRETTY_PRINTER } from "./consts";
+import { getJSBMTagId, getSourceFile } from "./util";
 
 export function printCode(path: string, options: Args) {
     const file = getSourceFile(path);
 
     function print(node: ts.Node) {
         node.forEachChild((node) => {
-            print(node);
-
             const id = getJSBMTagId(node.getChildAt(0, file));
 
             if (id) {
                 console.log(header(path, file, node, options));
                 console.log(
-                    PRINTER.printNode(
+                    PRETTY_PRINTER.printNode(
                         ts.EmitHint.Unspecified,
                         node,
                         file
@@ -23,6 +21,8 @@ export function printCode(path: string, options: Args) {
                 );
                 console.log(footer(options));
             }
+
+            print(node);
         });
     }
 
@@ -47,8 +47,7 @@ function header(
     return options.markdown
         ? "*" +
               res +
-              "*" +
-              "\n```" +
+              "*\n```" +
               (path.endsWith("ts") ? "ts" : "js")
         : ".".repeat(32 - res.length) + res;
 }
