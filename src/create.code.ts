@@ -117,8 +117,7 @@ function createVisit(
                 ? TF.createBlock([callExpr])
                 : TF.createBlock([child as ts.Statement]);
 
-            // NOTE: push function declaration
-            if (ts.isFunctionDeclaration(child)) {
+            if (callExpr) {
                 update.push(child);
             }
 
