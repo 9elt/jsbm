@@ -22,8 +22,8 @@ await new Promise((resolve) =>
 
 const lines = stdout.split("\n");
 
-let failed = 0;
 let passed = 0;
+let failed = 0;
 
 [
     />test\/benchmark.ts bun@\d+.\d+.\d+ iter:1 samples:1000/,
@@ -35,11 +35,11 @@ let passed = 0;
 ].forEach((reg, i) => {
     const line = lines[i];
 
-    if (!reg.test(line)) {
+    if (reg.test(line)) {
+        passed++;
+    } else {
         console.error("> test failed @", line);
         failed++;
-    } else {
-        passed++;
     }
 });
 
