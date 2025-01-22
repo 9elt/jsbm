@@ -1,6 +1,6 @@
 {
     "name": "@9elt/jsbm",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "A CLI to benchmark JavaScript (and TypeScript) on the spot, using JSDoc comments",
     "type": "module",
     "scripts": {
@@ -25,10 +25,10 @@
     "homepage": "https://github.com/9elt/jsbm#readme",
     "repository": "github:9elt/jsbm",
     "devDependencies": {
+        "prettier": "^3.4.2",
         "@types/node": "^22.10.5"
     },
     "dependencies": {
-        "prettier": "^3.4.2",
         "typescript": "^5.7.2"
     }
 }

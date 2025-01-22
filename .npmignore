@@ -1,6 +1,6 @@
 src
-test.js
-test.jsbm.js
-build.js
-build.config.js
+tests
+test*
+build*
+*.json
 !index.js
