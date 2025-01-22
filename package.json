@@ -7,7 +7,7 @@
         "build": "tsc && bun build.js",
         "format": "prettier --write ./src/*.ts",
         "pub": "npm run build && npm run test && npm publish",
-        "test": "bun src/index.ts test/index.ts"
+        "test": "bun src/index.ts tests/index.ts"
     },
     "bin": {
         "jsbm": "./index.js"
