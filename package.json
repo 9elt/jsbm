@@ -5,8 +5,9 @@
     "type": "module",
     "scripts": {
         "build": "tsc && bun build.js",
-        "pub": "npm run build && npm publish",
-        "format": "prettier --write ./src/*.ts"
+        "format": "prettier --write ./src/*.ts",
+        "pub": "npm run build && npm run test && npm publish",
+        "test": "bun src/index.ts test/index.ts"
     },
     "bin": {
         "jsbm": "./index.js"
