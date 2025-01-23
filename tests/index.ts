@@ -11,8 +11,14 @@ for (const runtime of ["bun", "deno", "node"]) {
 
     let stdout = "";
 
-    proc.stdout.addListener("data", (data) => (stdout += String(data)));
-    proc.stderr.addListener("data", (data) => (stdout += String(data)));
+    proc.stdout.addListener(
+        "data",
+        (data) => (stdout += String(data))
+    );
+    proc.stderr.addListener(
+        "data",
+        (data) => (stdout += String(data))
+    );
 
     let status = 0;
 
@@ -56,12 +62,12 @@ for (const runtime of ["bun", "deno", "node"]) {
     });
 
     if (failed) {
-        console.error(">", runtime, "failed")
+        console.error(">", runtime, "failed");
         console.error("   ", passed, "tests passed");
         console.error("   ", failed, "tests failed");
         exit = 1;
     } else {
-        console.error(">", runtime, "passed")
+        console.error(">", runtime, "passed");
         console.log("   ", passed, "tests passed");
         console.log("   ", failed, "tests failed");
     }

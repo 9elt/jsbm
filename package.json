@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "build": "tsc && bun build.js",
-        "format": "prettier --write ./src/*.ts",
+        "format": "prettier --write ./src/*.ts --write ./tests/*.ts",
         "pub": "npm run build && npm run test && npm publish",
         "test": "bun src/index.ts tests/index.ts"
     },
