@@ -10,6 +10,7 @@ for (const runtime of ["bun", "deno", "node"]) {
     ]);
 
     let stdout = "";
+    let stderr = "";
 
     proc.stdout.addListener(
         "data",
@@ -17,7 +18,7 @@ for (const runtime of ["bun", "deno", "node"]) {
     );
     proc.stderr.addListener(
         "data",
-        (data) => (stdout += String(data))
+        (data) => (stderr += String(data))
     );
 
     let status = 0;
@@ -25,7 +26,7 @@ for (const runtime of ["bun", "deno", "node"]) {
     await new Promise((resolve) =>
         proc.addListener("exit", (code) => {
             if (code) {
-                console.error(runtime, stdout);
+                console.error(runtime, stderr);
                 status = code;
             }
             resolve(true);
@@ -67,7 +68,7 @@ for (const runtime of ["bun", "deno", "node"]) {
         console.error("   ", failed, "tests failed");
         exit = 1;
     } else {
-        console.error(">", runtime, "passed");
+        console.log(">", runtime, "passed");
         console.log("   ", passed, "tests passed");
         console.log("   ", failed, "tests failed");
     }
