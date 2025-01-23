@@ -1,6 +1,6 @@
 import ts from "typescript";
 import type { Args } from ".";
-import { PRINTER, TF } from "./consts";
+import { PRINTER, TF, VERSION } from "./consts";
 import {
     getJSBMTagId,
     getSourceFile,
@@ -39,7 +39,7 @@ export function createBenchmarkCode(
     return (
         `\
 /*
- * auto-generated using jsbm (https://github.com/9elt/jsbm)
+ * auto-generated using jsbm v${VERSION} (https://github.com/9elt/jsbm)
  * samples ${options.sample}
  * iter ${options.iter}
  */
