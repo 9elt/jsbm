@@ -4,7 +4,7 @@ import { PACKAGE_VERSION } from "./macro" assert { type: "macro" };
 
 export const VERSION = PACKAGE_VERSION();
 
-export type Runtime = "bun" | "deno" | "node" | "ts-node";
+export type Runtime = "bun" | "deno" | "node";
 
 export const RUNTIMES: Runtime[] = ["bun", "deno", "node"];
 

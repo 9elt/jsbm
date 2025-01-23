@@ -134,20 +134,6 @@ for (const file of files) {
     }
 
     for (const runtime of runtimes) {
-        const isTSNode = isTS && runtime === "node";
-
-        if (isTSNode) {
-            try {
-                await getVersion("ts-node");
-            } catch {
-                console.log(
-                    ">" + file,
-                    "Error: ts-node is required to run typescript files with node"
-                );
-                continue;
-            }
-        }
-
         const version = await getVersion(runtime);
 
         if (options.markdown) {
@@ -169,9 +155,16 @@ for (const file of files) {
             );
         }
 
-        const proc = spawn(isTSNode ? "ts-node" : runtime, [
-            outputFile,
-        ]);
+        const isTSNode = isTS && runtime === "node";
+
+        const proc = spawn(
+            runtime,
+            [
+                isTSNode && "--no-warnings=ExperimentalWarning",
+                isTSNode && "--experimental-strip-types",
+                outputFile,
+            ].filter(Boolean)
+        );
 
         proc.stdout.pipe(process.stdout);
         proc.stderr.pipe(process.stderr);
