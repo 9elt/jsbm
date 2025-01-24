@@ -62,7 +62,7 @@ export function getJSBMTagId(
     return typeof _id === "string" ? _id : _id?.join(" ");
 }
 
-export function nodeContainsJSBM(
+export function containsJSBM(
     node: ts.Node,
     file: ts.SourceFile
 ) {
@@ -73,7 +73,7 @@ export function nodeContainsJSBM(
             if (
                 !contains &&
                 (getJSBMTagId(node.getChildAt(0, file)) ||
-                    nodeContainsJSBM(node, file))
+                    containsJSBM(node, file))
             ) {
                 contains = true;
             }
@@ -85,7 +85,7 @@ export function nodeContainsJSBM(
     return contains;
 }
 
-export function parseFunctionName(node: ts.Node) {
+export function getFunctionName(node: ts.Node) {
     let name: string | undefined;
 
     let expr:

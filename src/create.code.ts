@@ -2,10 +2,10 @@ import ts from "typescript";
 import type { Args } from ".";
 import { PRINTER, TF, VERSION } from "./consts";
 import {
+    containsJSBM,
+    getFunctionName,
     getJSBMTagId,
     getSourceFile,
-    nodeContainsJSBM,
-    parseFunctionName,
     parseJSBMTagId,
     TagItem,
 } from "./util";
@@ -71,7 +71,7 @@ function createVisit(
         let isModified = false;
 
         node.forEachChild((child) => {
-            const hasNestedJSBM = nodeContainsJSBM(child, file);
+            const hasNestedJSBM = containsJSBM(child, file);
 
             if (!hasNestedJSBM) {
                 update.push(child);
@@ -97,9 +97,12 @@ function createVisit(
                 return;
             }
 
-            const fname = parseFunctionName(child);
+            const functionName = getFunctionName(child);
 
-            const parts = parseJSBMTagId(id, !!fname);
+            const parts = parseJSBMTagId(
+                id,
+                functionName !== undefined
+            );
 
             const displayId =
                 parts.find((part) => part.type === TagItem.Data)
@@ -110,9 +113,9 @@ function createVisit(
                 "unknown";
 
             const callExpr =
-                fname &&
+                functionName &&
                 TF.createExpressionStatement(
-                    createFunctionCallExpr(fname, parts)
+                    createFunctionCallExpr(functionName, parts)
                 );
 
             const _node = callExpr
