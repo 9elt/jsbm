@@ -1,8 +1,9 @@
 import { spawn } from "child_process";
+import { RUNTIMES } from "../src/consts.ts";
 
 let exit = 0;
 
-for (const runtime of ["bun", "deno", "node"]) {
+for (const runtime of RUNTIMES) {
     const proc = spawn("bun", [
         "src/index.ts",
         runtime,
