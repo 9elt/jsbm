@@ -85,6 +85,43 @@ export function nodeContainsJSBM(
     return contains;
 }
 
+export function parseFunctionName(node: ts.Node) {
+    let name: string | undefined;
+
+    let expr:
+        | ts.ArrowFunction
+        | ts.FunctionDeclaration
+        | ts.FunctionExpression
+        | undefined;
+
+    if (ts.isFunctionDeclaration(node) && node.name) {
+        name = node.name.text;
+        expr = node;
+    } else if (ts.isVariableStatement(node)) {
+        node.forEachChild((c) => {
+            if (ts.isVariableDeclarationList(c)) {
+                c.forEachChild((c) => {
+                    if (ts.isVariableDeclaration(c)) {
+                        c.forEachChild((c) => {
+                            if (ts.isIdentifier(c)) {
+                                name = c.text;
+                            } else if (
+                                ts.isArrowFunction(c) ||
+                                ts.isFunctionExpression(c) ||
+                                ts.isFunctionDeclaration(c)
+                            ) {
+                                expr = c;
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    return name && expr ? name : undefined;
+}
+
 export enum TagItem {
     FunctionExpr,
     Data,
@@ -112,7 +149,10 @@ type Item = FunctionExpr | Data;
 
 const FUNCTION_EXPR = /^(\w+)\s*\(.*\)$/;
 
-export function parseJSBMTagId(id: string) {
+export function parseJSBMTagId(
+    id: string,
+    lookForFunctionExpr: boolean
+) {
     const parts: string[] = [""];
 
     let esc: ")" | "]" | "}" | ">" | null = null;
@@ -141,7 +181,7 @@ export function parseJSBMTagId(id: string) {
     let item: _Item = { type: TagItem.Data, data: [] };
 
     for (const part of parts) {
-        if (FUNCTION_EXPR.test(part)) {
+        if (lookForFunctionExpr && FUNCTION_EXPR.test(part)) {
             const [expr, name] = FUNCTION_EXPR.exec(part);
             if (item.data.length) {
                 items.push({

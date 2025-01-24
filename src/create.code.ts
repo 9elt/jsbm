@@ -5,6 +5,7 @@ import {
     getJSBMTagId,
     getSourceFile,
     nodeContainsJSBM,
+    parseFunctionName,
     parseJSBMTagId,
     TagItem,
 } from "./util";
@@ -96,7 +97,9 @@ function createVisit(
                 return;
             }
 
-            const parts = parseJSBMTagId(id);
+            const fname = parseFunctionName(child);
+
+            const parts = parseJSBMTagId(id, !!fname);
 
             const displayId =
                 parts.find((part) => part.type === TagItem.Data)
@@ -104,13 +107,12 @@ function createVisit(
                 parts.find(
                     (part) => part.type === TagItem.FunctionExpr
                 )?.name ||
-                "";
+                "unknown";
 
             const callExpr =
-                ts.isFunctionDeclaration(child) &&
-                child.name &&
+                fname &&
                 TF.createExpressionStatement(
-                    createFunctionCallExpr(child, parts)
+                    createFunctionCallExpr(fname, parts)
                 );
 
             const _node = callExpr
@@ -983,20 +985,20 @@ function createUtil(
 }
 
 function createFunctionCallExpr(
-    node: ts.FunctionDeclaration,
+    name: string,
     parts: ReturnType<typeof parseJSBMTagId>
 ) {
     const functionExpr = parts.find(
         (part) =>
             part.type === TagItem.FunctionExpr &&
-            part.name === node.name.text
-    );
+            part.name === name
+        // @ts-ignore
+    )?.expr;
 
     return functionExpr
-        ? // @ts-ignore
-          parseExpression(functionExpr.expr)
+        ? parseExpression(functionExpr)
         : TF.createCallExpression(
-              node.name,
+              TF.createIdentifier(name),
               undefined,
               undefined
           );

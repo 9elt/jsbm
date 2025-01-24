@@ -29,3 +29,17 @@ function declaration(ms: number) {
         wait(ms);
     }
 }
+
+/**
+ * @jsbm funct(0.1) assign-function-100μs
+ */
+const funct = function (ms: number) {
+    wait(ms);
+};
+
+/**
+ * @jsbm arrow(0.1) assign-arrow-100μs
+ */
+const arrow = (ms: number) => {
+    wait(ms);
+};
