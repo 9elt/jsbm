@@ -59,7 +59,7 @@ function createVisit(
         ts: true | undefined;
     }
 ) {
-    return function visit(node: ts.Node, count = 0) {
+    return function visit(node: ts.Node) {
         const isSourceFile = ts.isSourceFile(node);
         const isBlock = ts.isBlock(node);
 
