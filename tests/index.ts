@@ -21,22 +21,19 @@ for (const runtime of ["bun", "deno", "node"]) {
         (data) => (stderr += String(data))
     );
 
-    let status = 0;
-
-    await new Promise((resolve) =>
-        proc.addListener("exit", (code) => {
-            if (code) {
-                console.error(runtime, stderr);
-                status = code;
-            }
-            resolve(true);
-        })
+    const status: number | null = await new Promise((resolve) =>
+        proc.addListener("exit", resolve)
     );
 
     if (status) {
+        console.error(runtime, stderr);
         console.error(runtime, "failed with status", status);
         exit = status;
         continue;
+    }
+
+    if (stderr) {
+        console.error(runtime, stderr);
     }
 
     const lines = stdout.split("\n");
