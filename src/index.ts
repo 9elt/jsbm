@@ -106,13 +106,11 @@ if (files.length === 0) {
     process.exit(1);
 }
 
-if (options.printCode) {
-    for (const file of files) {
+for (const file of files) {
+    if (options.printCode) {
         printCode(file, options);
     }
-}
 
-for (const file of files) {
     const isTS = file.endsWith("ts") || undefined;
 
     const outputFile = addJSBMExtension(file);
