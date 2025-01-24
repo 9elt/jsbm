@@ -40,9 +40,10 @@ export function createBenchmarkCode(
     return (
         `\
 /*
- * auto-generated using jsbm v${VERSION} (https://github.com/9elt/jsbm)
- * samples ${options.sample}
- * iter ${options.iter}
+ * generated using jsbm ${VERSION} (see: https://github.com/9elt/jsbm)
+ *
+ * sample : ${options.sample}
+ * iter   : ${options.iter}
  */
 ` +
         utility.map(printNode).join("\n") +

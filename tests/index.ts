@@ -43,7 +43,7 @@ for (const runtime of RUNTIMES) {
     let failed = 0;
 
     [
-        />tests\/benchmark.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 samples:1000*/,
+        />tests\/benchmark.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 sample:1000*/,
         /statement-100μs \| 10\d.\d\dμs ±\d+.\d\dμs :\d+%/,
         /block-1.0ms \| 1.0\dms ±\d+.\d\dμs :\d+%/,
         /nest-500μs \| 50\d.\d\dμs ±\d+.\d\dμs :\d+%/,

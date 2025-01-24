@@ -142,14 +142,14 @@ for (const file of files) {
             );
             console.log(
                 "iter:" + options.iter,
-                "samples:" + options.sample
+                "sample:" + options.sample
             );
         } else {
             console.log(
                 ">" + file,
                 runtime + "@" + version,
                 "iter:" + options.iter,
-                "samples:" + options.sample
+                "sample:" + options.sample
             );
         }
 
