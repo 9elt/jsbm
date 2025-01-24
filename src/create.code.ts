@@ -117,7 +117,7 @@ function createVisit(
                 ? TF.createBlock([callExpr])
                 : TF.createBlock([child as ts.Statement]);
 
-            if (hasNestedJSBM && callExpr) {
+            if (hasNestedJSBM) {
                 update.push(child);
             }
 
