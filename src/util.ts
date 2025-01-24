@@ -13,14 +13,16 @@ export async function getVersion(
 
     const proc = spawn(runtime, ["--version"]);
 
-    const version = await new Promise((resolve, reject) => {
-        proc.stdout.addListener("data", resolve);
-        proc.stderr.addListener("data", reject);
-    });
+    const version = String(
+        await new Promise((resolve, reject) => {
+            proc.stdout.addListener("data", resolve);
+            proc.stderr.addListener("data", reject);
+        })
+    );
 
-    return (versionCache[runtime] = String(version)
-        .trim()
-        .replace(/\n/g, "/"));
+    const [semver] = version.match(/\d+\.\d+\.\d+/) || [];
+
+    return (versionCache[runtime] = semver || version);
 }
 
 const fileCache: { [key: string]: ts.SourceFile } = {};
