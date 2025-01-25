@@ -153,13 +153,15 @@ for (const file of files) {
             );
         }
 
-        const isTSNode = isTS && runtime === "node";
+        const isNode = runtime === "node";
 
         const proc = spawn(
             runtime,
             [
-                isTSNode && "--no-warnings=ExperimentalWarning",
-                isTSNode && "--experimental-strip-types",
+                isNode && "--no-warnings=ExperimentalWarning",
+                isNode &&
+                    "--experimental-specifier-resolution=node",
+                isNode && isTS && "--experimental-strip-types",
                 outputFile,
             ].filter(Boolean)
         );
