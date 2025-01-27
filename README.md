@@ -39,9 +39,9 @@ function push() {
  * @jsbm prealloc(new Array(256).fill(0)) prealloc-256
  * @jsbm prealloc(new Array(65536).fill(0)) prealloc-65536
  */
-function prealloc(renamedArray) {
-    const arr = new Array(renamedArray.length);
-    for (let i = 0; i < renamedArray.length; i++) {
+function prealloc(from) {
+    const arr = new Array(from.length);
+    for (let i = 0; i < from.length; i++) {
         arr[i] = i;
     }
     return arr;
