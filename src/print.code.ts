@@ -8,7 +8,7 @@ export function printCode(path: string, options: Args) {
 
     function print(node: ts.Node) {
         node.forEachChild((node) => {
-            const id = getJSBMTagId(node.getChildAt(0, file));
+            const [id] = getJSBMTagId(node.getChildAt(0, file));
 
             if (id) {
                 console.log(header(path, file, node, options));

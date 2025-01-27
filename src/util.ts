@@ -48,18 +48,19 @@ export function addJSBMExtension(file: string): string {
     return parts.join(".");
 }
 
-export function getJSBMTagId(
-    jsdoc?: ts.Node
-): string | undefined {
+export function getJSBMTagId(jsdoc?: ts.Node): string[] {
     if (!jsdoc || !ts.isJSDoc(jsdoc)) {
-        return;
+        return [];
     }
-
-    const _id = jsdoc.tags?.find(
-        (tag) => tag.tagName.text === "jsbm"
-    )?.comment;
-
-    return typeof _id === "string" ? _id : _id?.join(" ");
+    return (
+        jsdoc.tags
+            ?.filter((tag) => tag.tagName.text === "jsbm")
+            .map((tag) =>
+                typeof tag.comment === "string"
+                    ? tag.comment
+                    : tag.comment.join(" ")
+            ) || []
+    );
 }
 
 export function containsJSBM(
@@ -72,7 +73,8 @@ export function containsJSBM(
         try {
             if (
                 !contains &&
-                (getJSBMTagId(node.getChildAt(0, file)) ||
+                (getJSBMTagId(node.getChildAt(0, file))
+                    .length ||
                     containsJSBM(node, file))
             ) {
                 contains = true;

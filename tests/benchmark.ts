@@ -39,6 +39,7 @@ const funct = function (ms: number) {
 
 /**
  * @jsbm arrow(0.1) assign-arrow-100μs
+ * @jsbm arrow(0.2) assign-arrow-200μs
  */
 const arrow = (ms: number) => {
     wait(ms);

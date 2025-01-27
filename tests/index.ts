@@ -51,6 +51,7 @@ for (const runtime of RUNTIMES) {
         /nest-1.0ms \| 1.0\dms ±\d+.\d\dμs :\d+%/,
         /assign-function-100μs \| 10\d.\d\dμs ±\d+.\d\dμs :\d+%/,
         /arrow-100μs \| 10\d.\d\dμs ±\d+.\d\dμs :\d+%/,
+        /arrow-200μs \| 20\d.\d\dμs ±\d+.\d\dμs :\d+%/,
     ].forEach((reg, i) => {
         const line = lines[i];
 

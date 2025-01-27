@@ -88,7 +88,8 @@ function createVisit(
                 return;
             }
 
-            const id = getJSBMTagId(child.getChildAt(0, file));
+            const ids = getJSBMTagId(child.getChildAt(0, file));
+            const id: string | undefined = ids[0];
 
             if (!id) {
                 if (hasNestedJSBM) {
@@ -100,52 +101,64 @@ function createVisit(
 
             const functionName = getFunctionName(child);
 
-            const parts = parseJSBMTagId(
-                id,
-                functionName !== undefined
-            );
+            // NOTE: Only allow multiple ids for function expressions
+            // expecting different parameters
+            const _ids = functionName ? ids : [id];
 
-            const displayId =
-                parts.find((part) => part.type === TagItem.Data)
-                    ?.data ||
-                parts.find(
-                    (part) => part.type === TagItem.FunctionExpr
-                )?.name ||
-                "unknown";
+            for (let i = 0; i < _ids.length; i++) {
+                const id = _ids[i];
 
-            const callExpr =
-                functionName &&
-                TF.createExpressionStatement(
-                    createFunctionCallExpr(functionName, parts)
+                const parts = parseJSBMTagId(
+                    id,
+                    functionName !== undefined
                 );
 
-            const _node = callExpr
-                ? TF.createBlock([callExpr])
-                : TF.createBlock([child as ts.Statement]);
+                const displayId =
+                    parts.find(
+                        (part) => part.type === TagItem.Data
+                    )?.data ||
+                    parts.find(
+                        (part) =>
+                            part.type === TagItem.FunctionExpr
+                    )?.name ||
+                    "unknown";
 
-            if (hasNestedJSBM) {
-                update.push(child);
-            }
+                const callExpr =
+                    functionName &&
+                    TF.createExpressionStatement(
+                        createFunctionCallExpr(
+                            functionName,
+                            parts
+                        )
+                    );
 
-            update.push(
-                createBenchmark(_node, {
-                    ...options,
-                    id: displayId,
-                })
-            );
+                const _node = callExpr
+                    ? TF.createBlock([callExpr])
+                    : TF.createBlock([child as ts.Statement]);
 
-            if (hasNestedJSBM) {
+                if (hasNestedJSBM && i === 0) {
+                    update.push(child);
+                }
+
                 update.push(
-                    TF.createBlock(
-                        [
-                            ts.visitNode(
-                                child,
-                                visit
-                            ) as ts.Statement,
-                            callExpr as ts.Statement,
-                        ].filter(Boolean)
-                    )
+                    createBenchmark(_node, {
+                        ...options,
+                        id: displayId,
+                    })
                 );
+
+                if (hasNestedJSBM) {
+                    update.push(
+                        TF.createBlock(
+                            [
+                                removeNonNestableModifiers(
+                                    ts.visitNode(child, visit)
+                                ) as ts.Statement,
+                                callExpr as ts.Statement,
+                            ].filter(Boolean)
+                        )
+                    );
+                }
             }
 
             isModified = true;
@@ -169,6 +182,34 @@ function createVisit(
             );
         }
     };
+}
+
+function removeNonNestableModifiers(node: ts.Node) {
+    if (!ts.canHaveModifiers(node)) {
+        return node;
+    }
+
+    const modifiers = ts.getModifiers(node);
+
+    if (
+        !modifiers ||
+        !modifiers.some(
+            (m) =>
+                m.kind === ts.SyntaxKind.DefaultKeyword ||
+                m.kind === ts.SyntaxKind.ExportKeyword
+        )
+    ) {
+        return node;
+    }
+
+    return TF.replaceModifiers(
+        node,
+        modifiers.filter(
+            (m) =>
+                m.kind !== ts.SyntaxKind.DefaultKeyword &&
+                m.kind !== ts.SyntaxKind.ExportKeyword
+        )
+    );
 }
 
 function createBenchmark(

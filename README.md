@@ -11,7 +11,7 @@ statement or function
 <sub>_example.js_</sub>
 
 ```js
-const original = new Array(2056).fill(0);
+const original = new Array(2048).fill(0);
 
 /**
  * Place the tag before a block or statement
@@ -36,6 +36,8 @@ function push() {
 /**
  * Pass parameters to the function
  * @jsbm prealloc(original)
+ * @jsbm prealloc(new array(256).fill(0)) prealloc-256
+ * @jsbm prealloc(new Array(65536).fill(0)) prealloc-65536
  */
 function prealloc(renamedArray) {
     const arr = new Array(renamedArray.length);
@@ -49,9 +51,11 @@ function prealloc(renamedArray) {
 ```
 $ jsbm example.js
 >example.js bun@1.1.42 iter:1 sample:1000
-map | 14.95μs ±4.17μs :4%
-push | 17.04μs ±6.96μs :1%
-prealloc | 2.85μs ±0.26μs :24%
+map | 12.97μs ±2.89μs :7%
+push | 16.61μs ±7.08μs :1%
+prealloc | 4.30μs ±1.88μs :4%
+prealloc-256 | 1.35μs ±0.91μs :4%
+prealloc-65536 | 128.00μs ±5.21μs :16%
 ```
 
 ## Installation
