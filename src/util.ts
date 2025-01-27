@@ -153,27 +153,39 @@ export function parseJSBMTagId(
     id: string,
     lookForFunctionExpr: boolean
 ) {
+    type End = ")" | "]" | "}" | ">";
+
+    const S = "([{<";
+    const E = ")]}>";
+
     const parts: string[] = [""];
 
-    let esc: ")" | "]" | "}" | ">" | null = null;
+    let esc = 0;
+    let end: End | null = null;
+
     for (const char of id) {
-        if (char === " " && !esc) {
-            parts.push("");
+        if (char === " " && !end) {
+            if (parts[parts.length - 1] !== "") {
+                parts.push("");
+            }
             continue;
         }
+
         parts[parts.length - 1] += char;
-        if (esc) {
-            if (char === esc) {
-                esc = null;
+
+        if (end) {
+            if (char === end && --esc === 0) {
+                end = null;
+            } else if (S.indexOf(char) === E.indexOf(end)) {
+                esc++;
             }
-        } else if (char === "(") {
-            esc = ")";
-        } else if (char === "[") {
-            esc = "]";
-        } else if (char === "{") {
-            esc = "}";
-        } else if (char === "<") {
-            esc = ">";
+        } else {
+            const i = S.indexOf(char);
+
+            if (i !== -1) {
+                end = E[i] as End;
+                esc++;
+            }
         }
     }
 
