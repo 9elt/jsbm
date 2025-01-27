@@ -44,7 +44,11 @@ let option: keyof typeof options | null = null;
 for (const arg of args) {
     if (RUNTIMES.includes(arg as Runtime)) {
         runtimes.push(arg as Runtime);
-    } else if (fs.existsSync(arg)) {
+    } else if (
+        fs.existsSync(arg) &&
+        fs.lstatSync(arg).isFile() &&
+        fs.readFileSync(arg, "utf-8").includes("@jsbm")
+    ) {
         files.push(arg);
     } else if (arg === "--version" || arg === "-V") {
         options.version = true;
