@@ -36,7 +36,7 @@ function push() {
 /**
  * Pass parameters to the function
  * @jsbm prealloc(original)
- * @jsbm prealloc(new array(256).fill(0)) prealloc-256
+ * @jsbm prealloc(new Array(256).fill(0)) prealloc-256
  * @jsbm prealloc(new Array(65536).fill(0)) prealloc-65536
  */
 function prealloc(renamedArray) {
