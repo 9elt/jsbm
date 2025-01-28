@@ -22,16 +22,17 @@ const original = new Array<number>(2048).fill(0);
 }
 
 /**
- * Place the tag before a function declaration
+ * Place the tag before a function declaration,
+ * or arrow function assignment
  * @jsbm push
  */
-function push() {
+const push = () => {
     const arr: number[] = [];
     for (let i = 0; i < original.length; i++) {
         arr.push(i);
     }
     return arr;
-}
+};
 
 /**
  * Pass parameters to the function

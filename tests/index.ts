@@ -1,10 +1,13 @@
 import { spawn } from "child_process";
 import { RUNTIMES } from "../src/consts.ts";
 
-const FILES = ["tests/time.ts", "tests/readme.example.ts"];
+const FILES = [
+    "tests/time.exact.ts",
+    "tests/readme.example.ts",
+];
 
 const EXPECT = [
-    />tests\/time.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 sample:1000*/,
+    />tests\/time.exact.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 sample:1000*/,
     /statement-100μs \| 10\d.\d+μs ±\d+.\d+μs :\d+%/,
     /block-200μs \| 20\d.\d+μs ±\d+.\d+μs :\d+%/,
     /nest-100μs \| 10\d.\d+μs ±\d+.\d+μs :\d+%/,
