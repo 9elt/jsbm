@@ -7,23 +7,23 @@ function wait(ms: number) {
 wait(0.1);
 
 /**
- * @jsbm block-1.0ms
+ * @jsbm block-200μs
  */
 {
-    wait(0.5);
+    wait(0.1);
 
-    /** @jsbm nest-500μs */
-    wait(0.5);
+    /** @jsbm nest-100μs */
+    wait(0.1);
 }
 
 /**
- * @jsbm declaration(1) declaration-1.0ms
+ * @jsbm declaration(0.2) declaration-200μs
  */
 function declaration(ms: number) {
     wait(ms);
 
     /**
-     * @jsbm nest-1.0ms
+     * @jsbm nest-200μs
      */
     function nest() {
         wait(ms);

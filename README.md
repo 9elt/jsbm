@@ -8,10 +8,10 @@ using JSDoc comments
 Insert a JSDoc comment with a `@jsbm` tag above a block,
 statement or function
 
-<sub>_example.js_</sub>
+<sub>_example.ts_</sub>
 
-```js
-const original = new Array(2048).fill(0);
+```ts
+const original = new Array<number>(2048).fill(0);
 
 /**
  * Place the tag before a block or statement
@@ -26,7 +26,7 @@ const original = new Array(2048).fill(0);
  * @jsbm push
  */
 function push() {
-    const arr = [];
+    const arr: number[] = [];
     for (let i = 0; i < original.length; i++) {
         arr.push(i);
     }
@@ -39,8 +39,8 @@ function push() {
  * @jsbm prealloc(new Array(256).fill(0)) prealloc-256
  * @jsbm prealloc(new Array(65536).fill(0)) prealloc-65536
  */
-function prealloc(from) {
-    const arr = new Array(from.length);
+function prealloc(from: number[]) {
+    const arr = new Array<number>(from.length);
     for (let i = 0; i < from.length; i++) {
         arr[i] = i;
     }
@@ -49,8 +49,8 @@ function prealloc(from) {
 ```
 
 ```
-$ jsbm example.js
->example.js bun@1.1.42 iter:1 sample:1000
+$ jsbm example.ts
+>example.ts bun@1.1.42 iter:1 sample:1000
 map | 12.97μs ±2.89μs :7%
 push | 16.61μs ±7.08μs :1%
 prealloc | 4.30μs ±1.88μs :4%

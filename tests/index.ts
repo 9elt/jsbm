@@ -1,13 +1,33 @@
 import { spawn } from "child_process";
 import { RUNTIMES } from "../src/consts.ts";
 
+const FILES = ["tests/time.ts", "tests/readme.example.ts"];
+
+const EXPECT = [
+    />tests\/time.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 sample:1000*/,
+    /statement-100μs \| 10\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /block-200μs \| 20\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /nest-100μs \| 10\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /declaration-200μs \| 20\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /nest-200μs \| 20\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /assign-function-100μs \| 10\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /arrow-100μs \| 10\d.\d+μs ±\d+.\d+μs :\d+%/,
+    /arrow-200μs \| 20\d.\d+μs ±\d+.\d+μs :\d+%/,
+    />tests\/readme.example.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 sample:1000*/,
+    /map \| \d+.\d+μs ±\d+.\d+μs :\d+%/,
+    /push \| \d+.\d+μs ±\d+.\d+μs :\d+%/,
+    /prealloc \| \d+.\d+μs ±\d+.\d+μs :\d+%/,
+    /prealloc-256 \| \d+.\d+μs ±\d+.\d+μs :\d+%/,
+    /prealloc-65536 \| \d+.\d+μs ±\d+.\d+μs :\d+%/,
+];
+
 let exit = 0;
 
 for (const runtime of RUNTIMES) {
     const proc = spawn("bun", [
         "src/index.ts",
         runtime,
-        "tests/benchmark.ts",
+        ...FILES,
     ]);
 
     let stdout = "";
@@ -42,17 +62,7 @@ for (const runtime of RUNTIMES) {
     let passed = 0;
     let failed = 0;
 
-    [
-        />tests\/benchmark.ts (bun|deno|node)@\d+.\d+.\d+ iter:1 sample:1000*/,
-        /statement-100μs \| 10\d.\d\dμs ±\d+.\d\dμs :\d+%/,
-        /block-1.0ms \| 1.0\dms ±\d+.\d\dμs :\d+%/,
-        /nest-500μs \| 50\d.\d\dμs ±\d+.\d\dμs :\d+%/,
-        /declaration-1.0ms \| 1.0\dms ±\d+.\d\dμs :\d+%/,
-        /nest-1.0ms \| 1.0\dms ±\d+.\d\dμs :\d+%/,
-        /assign-function-100μs \| 10\d.\d\dμs ±\d+.\d\dμs :\d+%/,
-        /arrow-100μs \| 10\d.\d\dμs ±\d+.\d\dμs :\d+%/,
-        /arrow-200μs \| 20\d.\d\dμs ±\d+.\d\dμs :\d+%/,
-    ].forEach((reg, i) => {
+    EXPECT.forEach((reg, i) => {
         const line = lines[i];
 
         if (reg.test(line)) {
